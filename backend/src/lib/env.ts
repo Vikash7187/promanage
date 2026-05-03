@@ -10,7 +10,8 @@ const schema = z.object({
   JWT_EXPIRES_IN: z.string().default("7d"),
   JWT_REFRESH_SECRET: z.string().min(10),
   JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
-  FRONTEND_URL: z.string().url().default("http://localhost:3000")
+  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  CORS_ORIGIN: z.string().optional()
 });
 
 export const env = schema.parse(process.env);

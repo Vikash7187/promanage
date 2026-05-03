@@ -18,7 +18,12 @@ export const app = express();
 
 app.use(
   cors({
-    origin: true,
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8080",
+      env.FRONTEND_URL,
+      env.CORS_ORIGIN
+    ].filter(Boolean),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
