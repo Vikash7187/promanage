@@ -16,20 +16,54 @@ import { usersRouter } from "./modules/users/users.routes";
 
 export const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:8080",
+  env.FRONTEND_URL,
+  env.CORS_ORIGIN
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8080",
-      env.FRONTEND_URL,
-      env.CORS_ORIGIN
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      // allow requests with no Origin header (e.g., curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const isAllowed = allowedOrigins.includes(origin);
+      // helps debug Railway preflight failures
+      // eslint-disable-next-line no-console
+      console.log(`[CORS] origin=${origin} allowed=${isAllowed} allowedOrigins=${JSON.stringify(allowedOrigins)}`);
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: ["'self'", "data:", "https:"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        connectSrc: ["'self'", "https:", "http:"],
+        frameSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: []
+      }
+    }
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());

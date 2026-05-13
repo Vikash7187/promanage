@@ -19,8 +19,8 @@ async function bootstrap() {
     console.log(`In-memory MongoDB: ${dbUri}`);
   }
 
-  const { app } = await import("./app");
-  const { env } = await import("./lib/env");
+  const { app } = await import("./app.js");
+  const { env } = await import("./lib/env.js");
 
   app.listen(Number(env.PORT), () => {
     console.log(`TaskNest API running on port ${env.PORT}`);
