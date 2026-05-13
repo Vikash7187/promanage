@@ -29,8 +29,12 @@ RUN npm ci --omit=dev
 # Copy built app from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy prisma schema
+# Copy prisma schema (and migrations) so we can generate the client in this final image
 COPY prisma ./prisma
+
+# Generate Prisma client inside the runtime image.
+# This avoids: "@prisma/client did not initialize yet. Please run prisma generate" on Railway.
+RUN npx prisma generate
 
 # Expose port
 EXPOSE 5000
@@ -41,3 +45,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Start app
 CMD ["node", "dist/src/server.js"]
+
