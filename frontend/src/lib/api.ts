@@ -3,9 +3,10 @@
 import axios from "axios";
 
 export const api = axios.create({
-  // Railway backend base URL (set NEXT_PUBLIC_API_URL in prod). Fallback keeps local dev working.
+  // Backend must include the `/api` prefix because backend routes are mounted at `/api/*`.
   baseURL:
-    process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-4d68.up.railway.app/api",
+    process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-ff1e.up.railway.app/api",
+
 
 
   withCredentials: true

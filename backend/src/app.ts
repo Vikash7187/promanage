@@ -23,10 +23,14 @@ export const app = express();
 // - CORS_ORIGIN (optional)
 // - CORS_ORIGINS (optional, comma-separated list)
 const allowedOrigins = [
+  // local dev
   "http://localhost:3000",
   "http://localhost:8080",
+
+  // production / deployed
   env.FRONTEND_URL,
   env.CORS_ORIGIN,
+
   // optional env var: "https://a.com,https://b.com"
   (process.env.CORS_ORIGINS || "")
     .split(",")
@@ -34,21 +38,36 @@ const allowedOrigins = [
     .filter(Boolean)
 ].flat().filter(Boolean);
 
+// Normalize origins (e.g. remove trailing slashes)
+const normalize = (o: string) => o.replace(/\/+$/, "");
+const normalizedAllowedOrigins = new Set(allowedOrigins.map(normalize));
+
 app.use(
   cors({
+    // Important: cors() should run *before* any routes and should never be blocked.
+    // We only validate which origins get headers.
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const isAllowed = normalizedAllowedOrigins.has(normalize(origin));
+      // If not allowed: return false so headers aren't reflected.
+      return callback(null, isAllowed);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    // If Origin is not in our allowlist, fail the request.
-    origin: (origin, callback) => {
-      // Allow requests with no Origin header (e.g. curl, server-to-server)
-      if (!origin) return callback(null, true);
 
-      const isAllowed = allowedOrigins.includes(origin);
-      return isAllowed ? callback(null, true) : callback(null, false);
-    }
+    // Ensure browser gets CORS headers even for preflight
+    optionsSuccessStatus: 204
   })
 );
+
+// Extra safety for Express 5: force preflight to always be handled by cors middleware.
+app.options("/api/*", cors());
+
+
+
+
 
 // No explicit wildcard OPTIONS handler needed.
 // `cors()` middleware already handles preflight requests (OPTIONS) for all matched routes.
