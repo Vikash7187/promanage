@@ -16,62 +16,36 @@ import { usersRouter } from "./modules/users/users.routes";
 
 export const app = express();
 
-// CORS: support multiple origins + proper preflight handling.
-// Railway environments often use different frontend hostnames (and sometimes no env vars are set as expected).
-// Configure allowed origins via:
-// - FRONTEND_URL (single)
-// - CORS_ORIGIN (optional)
-// - CORS_ORIGINS (optional, comma-separated list)
+// CORS for Railway (production-safe, stable origin allowlist)
+// Requirement: only allow these origins.
 const allowedOrigins = [
-  // local dev
   "http://localhost:3000",
   "http://localhost:8080",
+  "https://promanage-production-09a3.up.railway.app"
+];
 
-  // production / deployed
-  env.FRONTEND_URL,
-  env.CORS_ORIGIN,
-
-  // optional env var: "https://a.com,https://b.com"
-  (process.env.CORS_ORIGINS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-].flat().filter(Boolean);
-
-// Normalize origins (e.g. remove trailing slashes)
-const normalize = (o: string) => o.replace(/\/+$/, "");
-const normalizedAllowedOrigins = new Set(allowedOrigins.map(normalize));
+const normalizeOrigin = (o: string) => o.replace(/\/+$/, "");
+const normalizedAllowedOrigins = new Set(allowedOrigins.map(normalizeOrigin));
 
 app.use(
   cors({
-    // Important: cors() should run *before* any routes and should never be blocked.
-    // We only validate which origins get headers.
     origin: (origin, callback) => {
+      // Non-browser requests may not send Origin header.
       if (!origin) return callback(null, true);
 
-      const isAllowed = normalizedAllowedOrigins.has(normalize(origin));
-      // If not allowed: return false so headers aren't reflected.
-      return callback(null, isAllowed);
+      const ok = normalizedAllowedOrigins.has(normalizeOrigin(origin));
+      return callback(null, ok);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-
-    // Ensure browser gets CORS headers even for preflight
     optionsSuccessStatus: 204
   })
 );
 
-// Extra safety for Express 5: force preflight to always be handled by cors middleware.
-app.options("/api/*", cors());
+// Ensure OPTIONS preflight always gets handled.
+app.options("*", cors());
 
-
-
-
-
-// No explicit wildcard OPTIONS handler needed.
-// `cors()` middleware already handles preflight requests (OPTIONS) for all matched routes.
-// Keeping wildcard OPTIONS handlers can cause Express 5 routing/path-to-regexp issues.
 
 
 

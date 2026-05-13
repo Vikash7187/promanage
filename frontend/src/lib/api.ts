@@ -2,12 +2,19 @@
 
 import axios from "axios";
 
+const API_BASE_FALLBACK = "https://promanage-production-ff1e.up.railway.app";
+
 export const api = axios.create({
   // Backend routes are mounted at `/api/*`.
   // Railway env vars sometimes omit `/api`.
   baseURL: (() => {
-    const raw = process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-ff1e.up.railway.app/api";
-    return raw.replace(/\/+$/, "").endsWith("/api") ? raw.replace(/\/+$/, "") : `${raw.replace(/\/+$/, "")}/api`;
+    const raw = process.env.NEXT_PUBLIC_API_URL ?? `${API_BASE_FALLBACK}/api`;
+    const normalized = raw.replace(/\/+$/, "");
+
+    // If env already includes /api, strip it for the base so we can consistently append once.
+    const noTrailing = normalized.endsWith("/api") ? normalized.slice(0, -3) : normalized;
+
+    return `${noTrailing}/api`;
   })(),
 
   withCredentials: true
