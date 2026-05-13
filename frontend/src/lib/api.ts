@@ -3,9 +3,12 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api",
+  // Railway backend base URL (set NEXT_PUBLIC_API_URL in prod). Fallback keeps local dev working.
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-4d11.up.railway.app/api",
   withCredentials: true
 });
+
 
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
