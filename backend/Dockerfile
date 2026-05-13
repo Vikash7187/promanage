@@ -29,12 +29,14 @@ RUN npm ci --omit=dev
 # Copy built app from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy prisma schema (and migrations) so we can generate the client in this final image
-COPY prisma ./prisma
 
-# Generate Prisma client inside the runtime image.
-# This avoids: "@prisma/client did not initialize yet. Please run prisma generate" on Railway.
-RUN npx prisma generate
+# Copy Prisma client generated in the builder stage.
+# This avoids re-running `prisma generate` in runtime (which may pull an incompatible Prisma version).
+# Prisma output lives under node_modules/.prisma and @prisma/client's generated JS.
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+
 
 # Expose port
 EXPOSE 5000
