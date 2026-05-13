@@ -16,24 +16,10 @@ import { usersRouter } from "./modules/users/users.routes";
 
 export const app = express();
 
-// CORS for Railway (production-safe, stable origin allowlist)
-// Requirement: only allow these origins.
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:8080",
-  "https://promanage-production-09a3.up.railway.app"
-];
-
-const normalizeOrigin = (o: string) => o.replace(/\/+$/, "");
-const normalizedAllowedOrigins = new Set(allowedOrigins.map(normalizeOrigin));
-
+// CORS (Railway production)
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8080",
-      "https://promanage-production-09a3.up.railway.app"
-    ],
+    origin: "https://promanage-production-09a3.up.railway.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
@@ -41,6 +27,7 @@ app.use(
 );
 
 app.options("*", cors());
+
 
 
 
