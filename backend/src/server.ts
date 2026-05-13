@@ -22,8 +22,10 @@ async function bootstrap() {
   const { app } = await import("./app.js");
   const { env } = await import("./lib/env.js");
 
-  app.listen(Number(env.PORT), () => {
-    console.log(`TaskNest API running on port ${env.PORT}`);
+  const PORT = process.env.PORT ? Number(process.env.PORT) : Number(env.PORT) || 5000;
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`TaskNest API running on port ${PORT}`);
   });
 }
 

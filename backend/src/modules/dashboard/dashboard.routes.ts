@@ -23,8 +23,7 @@ dashboardRouter.get("/", async (_req, res) => {
     recentActivity,
     myTasks,
     upcomingDeadlines,
-    activeProjects,
-    teamWorkload
+    activeProjects
   ] = await Promise.all([
     prisma.project.count(),
     prisma.task.count(),
@@ -72,6 +71,11 @@ dashboardRouter.get("/", async (_req, res) => {
       select: { id: true, name: true, role: true, tasks: { where: { status: TaskStatus.COMPLETED } } }
     })
   ]);
+
+  // Derived payload for the UI dashboard
+  const teamWorkload = await prisma.user.findMany({
+    select: { id: true, name: true, role: true, tasks: { where: { status: TaskStatus.COMPLETED } } }
+  });
 
   const workload = teamWorkload.map((user) => ({
     id: user.id,
