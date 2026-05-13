@@ -3,11 +3,12 @@
 import axios from "axios";
 
 export const api = axios.create({
-  // Backend must include the `/api` prefix because backend routes are mounted at `/api/*`.
-  baseURL:
-    process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-ff1e.up.railway.app/api",
-
-
+  // Backend routes are mounted at `/api/*`.
+  // Railway env vars sometimes omit `/api`.
+  baseURL: (() => {
+    const raw = process.env.NEXT_PUBLIC_API_URL ?? "https://promanage-production-ff1e.up.railway.app/api";
+    return raw.replace(/\/+$/, "").endsWith("/api") ? raw.replace(/\/+$/, "") : `${raw.replace(/\/+$/, "")}/api`;
+  })(),
 
   withCredentials: true
 });
