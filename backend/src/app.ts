@@ -47,21 +47,7 @@ app.use(
 );
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-        imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        connectSrc: ["'self'", "https:", "http:"],
-        frameSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        upgradeInsecureRequests: []
-      }
-    }
+    contentSecurityPolicy: false,
   })
 );
 app.use(morgan("dev"));
