@@ -50,8 +50,11 @@ app.use(
   })
 );
 
-// Extra: explicitly handle preflight requests (some setups rely on this).
-app.options("*", cors());
+// No explicit wildcard OPTIONS handler needed.
+// `cors()` middleware already handles preflight requests (OPTIONS) for all matched routes.
+// Keeping wildcard OPTIONS handlers can cause Express 5 routing/path-to-regexp issues.
+
+
 
 app.use(
   helmet({
@@ -77,4 +80,10 @@ app.use("/api/activity", activityRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/calendar", calendarRouter);
 
+// Safe 404 handler (must be after all routes)
+app.use((_req, res) => {
+  res.status(404).json({ message: "Not found" });
+});
+
 app.use(errorHandler);
+
