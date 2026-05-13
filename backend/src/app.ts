@@ -16,35 +16,43 @@ import { usersRouter } from "./modules/users/users.routes";
 
 export const app = express();
 
+// CORS: support multiple origins + proper preflight handling.
+// Railway environments often use different frontend hostnames (and sometimes no env vars are set as expected).
+// Configure allowed origins via:
+// - FRONTEND_URL (single)
+// - CORS_ORIGIN (optional)
+// - CORS_ORIGINS (optional, comma-separated list)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:8080",
   env.FRONTEND_URL,
-  env.CORS_ORIGIN
-].filter(Boolean);
+  env.CORS_ORIGIN,
+  // optional env var: "https://a.com,https://b.com"
+  (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+].flat().filter(Boolean);
 
 app.use(
   cors({
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    // If Origin is not in our allowlist, fail the request.
     origin: (origin, callback) => {
-      // allow requests with no Origin header (e.g., curl, server-to-server)
+      // Allow requests with no Origin header (e.g. curl, server-to-server)
       if (!origin) return callback(null, true);
 
       const isAllowed = allowedOrigins.includes(origin);
-      // helps debug Railway preflight failures
-      // eslint-disable-next-line no-console
-      console.log(`[CORS] origin=${origin} allowed=${isAllowed} allowedOrigins=${JSON.stringify(allowedOrigins)}`);
-
-      if (isAllowed) {
-        return callback(null, true);
-      }
-
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+      return isAllowed ? callback(null, true) : callback(null, false);
+    }
   })
 );
+
+// Extra: explicitly handle preflight requests (some setups rely on this).
+app.options("*", cors());
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
