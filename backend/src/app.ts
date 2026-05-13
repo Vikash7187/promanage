@@ -29,22 +29,19 @@ const normalizedAllowedOrigins = new Set(allowedOrigins.map(normalizeOrigin));
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Non-browser requests may not send Origin header.
-      if (!origin) return callback(null, true);
-
-      const ok = normalizedAllowedOrigins.has(normalizeOrigin(origin));
-      return callback(null, ok);
-    },
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8080",
+      "https://promanage-production-09a3.up.railway.app"
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
-// Ensure OPTIONS preflight always gets handled.
 app.options("*", cors());
+
 
 
 
